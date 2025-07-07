@@ -1,0 +1,1065 @@
+/* src/App.css - VERSÃO FINAL COM TUDO ATUALIZADO (ÚLTIMO CHECKPOINT BASE + NOVAS FEATURES) */
+
+/* --- Paleta de Cores (TEMA CLARO PADRÃO) --- */
+:root {
+  font-family: 'Montserrat', sans-serif; /* FONTE ALTERADA PARA MONTSERRAT */
+  line-height: 1.5;
+  font-weight: 400;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  --background: #ffffff;
+  --card-bg: #ffffff;
+  --border-color: #dee2e6;
+  --primary-blue: #007bff;
+  --primary-blue-hover: #0069d9;
+  --text-primary: #212529;
+  --text-secondary: #6c757d;
+  --error-color: #dc3545;
+  --warning-bg: rgba(220, 53, 69, 0.05); /* Usado para mensagens de erro/aviso */
+  --success-color: #28a745;
+  --header-bg-transparent: rgba(255, 255, 255, 0.85);
+  --input-bg-light: #f8f9fa; /* Fundo de input no tema claro */
+
+  /* Novas variáveis para cores de login (neutras) */
+  --login-input-bg: hsl(240, 5%, 15%); /* Fundo mais escuro para inputs no tema escuro */
+  --login-input-border: hsl(240, 5%, 25%); /* Borda sutil para inputs */
+  --login-button-primary-bg: linear-gradient(90deg, #4a90e2, #007bff); /* Gradiente para o botão principal */
+  --login-button-primary-hover-bg: linear-gradient(90deg, #357abd, #0069d9);
+  --login-button-text: #ffffff; /* Cor do texto dos botões */
+  --login-link-color: #4a90e2; /* Cor para links como "crie uma nova carteira" */
+
+  /* Cores para o degradê do card de login (tema claro) - MAIS LEVE */
+  --card-login-gradient-start-light: #fcfcfc; /* Começa quase branco */
+  --card-login-gradient-end-light: #f4f4f4; /* Termina em um cinza muito claro */
+  /* Cores para o degradê do card de login (tema escuro) - MAIS LEVE */
+  --card-login-gradient-start-dark: hsl(240, 5%, 12%); /* Ligeiramente mais claro que o fundo */
+  --card-login-gradient-end-dark: hsl(240, 5%, 10%); /* Um pouco mais escuro */
+}
+
+/* --- Estilos Globais --- */
+html,
+body,
+#root {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+}
+
+body {
+  font-family: 'Montserrat', sans-serif; /* FONTE ALTERADA PARA MONTSERRAT */
+  color: var(--text-primary);
+  background-color: var(--background);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* --- Estrutura de Layout Principal --- */
+.App {
+  width: 100%;
+  min-height: 100vh;
+  box-sizing: border-box;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Removido o layout condicional do App-header aqui, será tratado pelo container */
+.App-header {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-sizing: border-box;
+  padding: 0;
+}
+
+/* --- Layouts Condicionais (App level) --- */
+.login-view {
+  /* Fundo claro com degrade escuro puxado para baixo (para tema claro) */
+  background: linear-gradient(to bottom, var(--background) 0%, rgba(0, 0, 0, 0.1) 80%, rgba(0, 0, 0, 0.2) 100%);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-grow: 1;
+}
+.dashboard-view {
+  background-color: var(--background);
+  flex-grow: 1;
+}
+
+@keyframes backgroundPan {
+  0% {
+    background-position: 0% 50%;
+  }
+  100% {
+    background-position: 100% 50%;
+  }
+}
+
+/* --- Estilos para o Menu Hambúrguer (COM ANIMAÇÕES) --- */
+.header-menu-container {
+  position: relative;
+  display: inline-block;
+}
+
+.hamburger-icon {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 50%;
+  color: var(--text-secondary); /* Cor do ícone do hambúrguer */
+}
+
+.hamburger-icon:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+/* NOVA ANIMAÇÃO DO ÍCONE HAMBÚRGUER */
+.hamburger-icon .line {
+  transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
+  transform-origin: center;
+}
+.hamburger-icon.is-open .line.top {
+  transform: translateY(6px) rotate(45deg);
+}
+.hamburger-icon.is-open .line.middle {
+  opacity: 0;
+  transform: scaleX(0);
+}
+.hamburger-icon.is-open .line.bottom {
+  transform: translateY(-6px) rotate(-45deg);
+}
+
+/* NOVA ANIMAÇÃO DE KEYFRAMES PARA OS ITENS DO DROPDOWN */
+@keyframes slideInFromTop {
+  from {
+    opacity: 0;
+    transform: translateY(-15px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ==================================================================
+  MENU SUSPENSO ATUALIZADO COM EFEITO VIDRO FOSCO
+==================================================================
+*/
+.dropdown-menu {
+  position: absolute;
+  top: calc(100% + 5px);
+  right: 0;
+  background-color: var(--header-bg-transparent);
+  -webkit-backdrop-filter: blur(2px);
+  backdrop-filter: blur(2px);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  width: 200px;
+  z-index: 1000;
+  overflow: hidden;
+  opacity: 0;
+  transform: scale(0.95) translateY(-10px);
+  transform-origin: top right;
+  pointer-events: none;
+  transition: opacity 0.2s ease-out, transform 0.2s ease-out;
+}
+
+.header-menu-container > button.is-open + .dropdown-menu {
+  opacity: 1;
+  transform: scale(1) translateY(0);
+  pointer-events: auto;
+}
+
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 10px 15px;
+  text-align: left;
+  font-weight: 500;
+  /* IMPORTANTE: Definindo a cor do texto para ser visível em ambos os temas */
+  color: var(--text-primary); 
+  background-color: transparent;
+  border: none;
+  box-sizing: border-box;
+  opacity: 0;
+  animation-fill-mode: forwards;
+}
+
+.header-menu-container > button.is-open + .dropdown-menu .dropdown-item {
+  animation-name: slideInFromTop;
+  animation-duration: 0.4s;
+  animation-timing-function: ease-out;
+}
+
+.dropdown-item svg {
+  flex-shrink: 0;
+  /* IMPORTANTE: Ícones herdam a cor do texto do item para consistência */
+  color: inherit; 
+}
+
+.dropdown-item span {
+  flex-grow: 1;
+  /* IMPORTANTE: Texto herda a cor do item para consistência */
+  color: inherit; 
+}
+
+.dropdown-item:hover {
+  background-color: var(--primary-blue);
+  color: #ffffff;
+}
+
+.dropdown-item:hover span,
+.dropdown-item:hover svg {
+  color: #ffffff;
+}
+
+
+/* --- Layout da Tela de Login ATUALIZADO --- */
+.login-screen-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* CENTRALIZA ITENS HORIZONTALMENTE */
+  justify-content: flex-start; /* ALINHA O CONTEÚDO MAIS PARA O TOPO */
+  width: 100%;
+  height: 100vh;
+  /* AJUSTE AQUI: Menos padding superior e geral para dar mais espaço */
+  padding: 20px 20px; /* Reduzi o padding superior e o padding geral */
+  box-sizing: border-box;
+  /* Adicionado para permitir rolagem no container se o conteúdo for maior que a tela */
+  overflow-y: auto;
+}
+
+.login-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  /* AJUSTE AQUI: Menos margem inferior para aproximar o card */
+  margin-bottom: 20px;
+}
+.login-header .logo {
+  width: 90px; /* LOGO MAIOR */
+  height: 90px; /* LOGO MAIOR */
+  margin-bottom: 8px; /* Espaço entre a imagem da logo e o texto Guardian Wallet */
+  filter: drop-shadow(0 0 8px rgba(0, 123, 255, 0.4));
+}
+.login-header h1 {
+  font-size: 1.8rem; /* Texto "Guardian Wallet" */
+  margin: 0;
+  color: var(--text-primary);
+  letter-spacing: -0.5px;
+  font-weight: 700;
+}
+.login-header h1 span {
+  font-weight: 400;
+  opacity: 0.85;
+}
+
+/* --- Card de Conteúdo (Usado no Login) ATUALIZADO com Degradê MAIS LEVE --- */
+.card {
+  /* Degradê no card para tema claro: mais claro puxando para o preto (ou cinza escuro) */
+  background: linear-gradient(to bottom, var(--card-login-gradient-start-light), var(--card-login-gradient-end-light));
+  /* AJUSTE AQUI: Menor padding para tornar o card mais compacto */
+  padding: 2rem 1.5rem; /* Reduzindo o padding horizontal e vertical */
+  border-radius: 20px;
+  width: 100%;
+  max-width: 450px;
+  border: 1px solid var(--border-color);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+  text-align: left;
+  box-sizing: border-box;
+  backdrop-filter: none; /* Removido o efeito de vidro fosco */
+  -webkit-backdrop-filter: none; /* Removido o efeito de vidro fosco */
+  
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.card h2 {
+  /* AJUSTE AQUI: Menor font-size para o título do card */
+  font-size: 1.3rem;
+  margin-top: 0;
+  /* AJUSTE AQUI: Menor margem inferior */
+  margin-bottom: 0.5rem;
+  color: var(--text-primary);
+  font-weight: 700;
+  text-align: center;
+}
+.card p {
+  /* AJUSTE AQUI: Menor font-size para o parágrafo */
+  font-size: 1rem;
+  color: var(--text-secondary);
+  /* AJUSTE AQUI: Menor margem inferior */
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+/* --- Layout da Dashboard --- */
+.wallet-screen {
+  width: 100%;
+  height: 100%;
+  max-width: 500px;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+}
+
+.wallet-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.5rem;
+  flex-shrink: 0;
+  position: sticky;
+  top: 0;
+  z-index: 999;
+  background-color: var(--header-bg-transparent);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+  transition: background-color 0.3s ease;
+}
+
+.wallet-header.scrolled {
+  /* Pode-se alterar o fundo para algo mais opaco ou mudar a sombra aqui */
+}
+
+.logo-container {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+.logo {
+  height: 40px;
+  width: 40px;
+}
+.wallet-header h1 {
+  font-size: 1.25rem;
+  margin: 0;
+  display: flex;
+  align-items: baseline;
+}
+.wallet-header h1 strong {
+  font-weight: 700;
+  color: var(--text-primary);
+}
+.wallet-header h1 span {
+  font-weight: 500;
+  color: var(--text-primary);
+  opacity: 0.85;
+  margin-left: 4px;
+}
+.wallet-content {
+  padding: 1.5rem;
+  flex-grow: 1;
+  overflow-y: auto;
+}
+
+/* --- Novo estilo para o aviso de carteira não salva no Dashboard --- */
+.unsaved-wallet-warning {
+    background-color: var(--warning-bg); /* Reutiliza a cor de aviso */
+    border: 1px solid var(--error-color); /* Borda de atenção */
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+    text-align: center;
+    color: var(--text-primary);
+}
+.unsaved-wallet-warning p {
+    margin-top: 0;
+    margin-bottom: 1rem;
+    font-size: 0.95rem;
+    line-height: 1.4;
+    color: var(--text-secondary); /* Texto secundário para descrição */
+}
+.unsaved-wallet-warning button {
+    width: auto; /* Botão flexível */
+    padding: 8px 15px; /* Padding menor */
+    font-size: 0.9rem;
+    background-color: var(--primary-blue); /* Cor primária */
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+.unsaved-wallet-warning button:hover {
+    background-color: var(--primary-blue-hover);
+}
+
+
+/* --- CARD DE SALDO COM GRADIENTE (TEMA CLARO) --- */
+.balance-section {
+  background: linear-gradient(135deg, #1f42bd, #0ba1d8);
+  border-radius: 16px;
+  padding: 16px 20px;
+  text-align: left;
+  color: white;
+  box-shadow: 0 8px 25px rgba(37, 117, 252, 0.3);
+  margin-bottom: 2rem;
+  transition: all 0.3s ease;
+}
+.balance-section:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 30px rgba(10, 122, 234, 0.634);
+}
+.balance-label {
+  font-size: 0.8rem;
+  font-weight: 500;
+  opacity: 0.8;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  margin-bottom: 0.25rem;
+}
+.balance-value {
+  font-size: 2.0rem;
+  font-weight: 700;
+  margin: 4px 0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0.4rem;
+}
+.eth-unit {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 1.2rem;
+  font-weight: 400;
+  color: white;
+  opacity: 0.9;
+}
+.eth-icon {
+  width: 20px;
+  height: 20px;
+}
+.eth-icon path {
+  fill: white;
+}
+
+.chart-section {
+  margin-bottom: 2rem;
+}
+.address-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 0.5rem;
+}
+
+/* --- ESTILOS PARA A TELA DE SEGURANÇA --- */
+.security-screen h2 {
+  font-size: 1.5rem;
+  color: var(--text-primary);
+  margin-top: 0;
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 0.75rem;
+}
+.security-section {
+  background-color: var(--card-bg);
+  padding: 1.5rem;
+  border-radius: 8px;
+  margin-bottom: 2rem;
+  border: 1px solid var(--border-color);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+.security-section h3 {
+  font-size: 1.2rem;
+  color: var(--text-primary);
+  margin-top: 0;
+  margin-bottom: 0.75rem;
+}
+.security-note {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  margin-bottom: 1rem;
+  line-height: 1.5;
+}
+.security-input {
+  margin-bottom: 1rem !important;
+}
+.security-button {
+  margin-top: 0.5rem;
+}
+.back-button {
+  display: inline-block;
+  margin-bottom: 1.5rem;
+  color: var(--primary-blue);
+  font-weight: 500;
+  text-decoration: none;
+  width: auto;
+  padding: 0.5rem 0;
+}
+.back-button:hover {
+  text-decoration: underline;
+}
+
+/* --- ESTILOS PARA A TELA ADICIONAR FUNDOS --- */
+.add-funds-screen h2 {
+  font-size: 1.5rem;
+  color: var(--text-primary);
+  margin-top: 0;
+  margin-bottom: 1rem;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 0.75rem;
+}
+.funds-note {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  margin-bottom: 1.5rem;
+  line-height: 1.5;
+}
+.address-display-card, .qr-code-card {
+  background-color: var(--card-bg);
+  padding: 1.5rem;
+  border-radius: 8px;
+  margin-bottom: 2rem;
+  border: 1px solid var(--border-color);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  text-align: center;
+}
+.address-display-label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 0.75rem;
+}
+.address-text-funds {
+  font-family: monospace;
+  font-size: 0.95rem;
+  color: var(--text-primary);
+  background-color: var(--input-bg-light);
+  padding: 0.75rem;
+  border-radius: 6px;
+  word-break: break-all;
+  margin-bottom: 1rem;
+  border: 1px solid var(--border-color);
+}
+.copy-button-funds {
+  width: auto;
+  padding: 10px 20px !important;
+}
+.qr-code-card h3 {
+  font-size: 1.2rem;
+  color: var(--text-primary);
+  margin-top: 0;
+  margin-bottom: 1rem;
+}
+.qr-code-container-funds {
+  padding: 10px;
+  background-color: white;
+  display: inline-block;
+  margin-bottom: 1rem;
+}
+.qr-code-note {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  margin-top: 0.5rem;
+}
+
+
+/* --- Estilos de Botão ATUALIZADO --- */
+button {
+  font-family: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 1px solid transparent;
+  background-color: transparent;
+  color: var(--text-primary);
+}
+button.primary, button.confirm-button {
+  width: 80%;
+  padding: 12px 16px;
+  margin: 1.5rem auto 0 auto;
+  border-radius: 8px;
+  background: var(--login-button-primary-bg);
+  border: none;
+  color: var(--login-button-text);
+  box-shadow: none;
+  transition: box-shadow 0.3s ease, filter 0.3s ease;
+}
+button.primary:hover, button.confirm-button:hover {
+  box-shadow: 0 0 25px rgba(0, 123, 255, 0.7);
+  filter: brightness(1.15);
+}
+button:disabled {
+  background: #adb5bd !important;
+  border-color: #adb5bd !important;
+  color: #f8f9fa !important;
+  cursor: not-allowed;
+  opacity: 0.7;
+  box-shadow: none !important;
+  transform: none !important;
+  filter: none !important;
+}
+
+/* --- Inputs e Outros ATUALIZADO --- */
+input[type="password"], input[type="text"] {
+  width: 100%;
+  padding: 14px 16px;
+  margin: 0.75rem 0;
+  border-radius: 8px;
+  border: 1px solid var(--login-input-border);
+  font-size: 1.05rem;
+  box-sizing: border-box;
+  background-color: var(--login-input-bg);
+  color: var(--text-primary);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+input:focus, textarea:focus {
+  outline: none;
+  border-color: var(--primary-blue);
+  box-shadow: 0 0 0 4px rgba(0, 123, 255, 0.3);
+}
+
+input::placeholder {
+  font-size: 0.95rem; /* DIMINUINDO A FONTE DO PLACEHOLDER */
+  color: #cccccc;
+  opacity: 1;
+}
+input:-ms-input-placeholder {
+  font-size: 0.95rem;
+  color: #cccccc;
+}
+input::-ms-input-placeholder {
+  font-size: 0.95rem;
+  color: #cccccc;
+}
+
+.auth-switch {
+  /* AJUSTE AQUI: Reduzir a margem superior para subir o link */
+  margin-top: 30px;
+  font-size: 0.95rem;
+  text-align: center;
+  color: var(--text-secondary);
+}
+.link-button {
+  padding: 0;
+  color: var(--login-link-color);
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition: border-bottom 0.2s ease;
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+.link-button:hover {
+  border-bottom-color: var(--login-link-color);
+}
+.error-message {
+  color: var(--error-color);
+  font-weight: 600;
+  margin-top: 15px;
+  font-size: 0.95rem;
+  text-align: center;
+  background-color: var(--warning-bg);
+  padding: 8px 12px;
+  border-radius: 6px;
+  border: 1px solid rgba(220, 53, 69, 0.2);
+}
+.success-message {
+  color: var(--success-color);
+  font-weight: 600;
+  margin-top: 15px;
+  font-size: 0.95rem;
+  text-align: center;
+  background-color: rgba(40, 167, 69, 0.05);
+  padding: 8px 12px;
+  border-radius: 6px;
+  border: 1px solid rgba(40, 167, 69, 0.2);
+}
+
+
+/* --- TEMA ESCURO ATUALIZADO --- */
+body.theme-dark {
+  --background: hsl(228, 9%, 10%);
+  --card-bg: hsl(240, 5%, 8%);
+  --border-color: hsl(240, 5%, 20%);
+  --primary-blue: #4a90e2;
+  --primary-blue-hover: #357abd;
+  --text-primary: #ffffff;
+  --text-secondary: #bbbbbb;
+  --error-color: #ff7b7b;
+  --success-color: #75e091;
+  --header-bg-transparent: hsla(240, 5%, 8%, 0.85);
+  --input-bg-light: var(--login-input-bg);
+}
+.theme-dark.login-view {
+  background: linear-gradient(to bottom, var(--background) 0%, hsl(228, 15%, 5%) 80%, hsl(240, 10%, 2%) 100%);
+}
+.theme-dark .hamburger-icon {
+  color: var(--text-primary); /* Forçando branco para o ícone do hambúrguer no tema escuro */
+}
+.theme-dark .hamburger-icon:hover {
+  background-color: rgba(255, 255, 255, 0.08);
+}
+.theme-dark .dropdown-menu {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  border-color: var(--border-color);
+}
+.theme-dark .dropdown-item {
+  color: var(--text-primary); /* Forçando branco para o texto dos itens do menu */
+}
+.theme-dark .dropdown-item span {
+  color: var(--text-primary); /* Forçando branco para o texto dos itens do menu */
+}
+.theme-dark .dropdown-item svg {
+  color: var(--text-primary); /* Forçando branco para os ícones dos itens do menu */
+}
+.theme-dark .balance-section {
+  background: linear-gradient(135deg, #121061, #0f719b);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+}
+.theme-dark .card {
+   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+   border-color: var(--border-color);
+   /* Degradê para o tema escuro do card */
+   background: linear-gradient(to bottom, var(--card-login-gradient-start-dark), var(--card-login-gradient-end-dark));
+   backdrop-filter: none; /* REMOVIDO EFEITO DE VIDRO FOSCO NO TEMA ESCURO DO CARD */
+   -webkit-backdrop-filter: none; /* REMOVIDO EFEITO DE VIDRO FOSCO NO TEMA ESCURO DO CARD */
+}
+.theme-dark input[type="password"],
+.theme-dark input[type="text"] {
+  background-color: var(--login-input-bg);
+  border-color: var(--login-input-border);
+  color: var(--text-primary);
+}
+.theme-dark input:focus,
+.theme-dark textarea:focus {
+  border-color: var(--primary-blue);
+  box-shadow: 0 0 0 3px rgba(var(--primary-blue), 0.3);
+}
+.theme-dark .security-section,
+.theme-dark .address-display-card,
+.theme-dark .qr-code-card {
+  border-color: var(--border-color);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+.theme-dark .back-button {
+  color: var(--primary-blue);
+}
+.theme-dark .address-text-funds {
+  background-color: var(--input-bg-light);
+  border-color: var(--border-color);
+}
+.theme-dark .qr-code-container-funds {
+  background-color: var(--card-bg);
+  border-color: var(--card-bg);
+}
+.theme-dark .wallet-header {
+  background-color: var(--header-bg-transparent);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+/* --- ESTILOS PARA A TELA DE ENVIAR FUNDOS --- */
+.send-funds-screen h2 {
+  font-size: 1.5rem;
+  color: var(--text-primary);
+  margin-top: 0;
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 0.75rem;
+}
+.send-funds-form {
+  background-color: var(--card-bg);
+  padding: 1.5rem;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+  border: 1px solid var(--border-color);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+.form-group {
+  margin-bottom: 1.5rem;
+}
+.form-group:last-of-type {
+  margin-bottom: 1rem;
+}
+.form-group label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+.form-group input {
+  margin-top: 0;
+}
+.balance-info {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  margin-top: 0.5rem;
+  text-align: right;
+}
+.send-feedback {
+  margin-top: 1.25rem;
+  text-align: center;
+  word-break: break-all;
+}
+.theme-dark .send-funds-form {
+  border-color: var(--border-color);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+
+/* Media query para telas maiores para restaurar o visual de card (desktop) */
+@media (min-width: 768px) {
+  .login-view {
+    justify-content: center;
+    padding-top: 0;
+  }
+  .login-screen-container {
+    flex-direction: column;
+    justify-content: center;
+    height: auto;
+    padding-bottom: 0;
+  }
+  .login-header {
+    flex-direction: column;
+    margin-bottom: 32px;
+    padding: 0;
+  }
+  .login-header .logo {
+    width: 70px;
+    height: 70px;
+    margin-bottom: 12px;
+  }
+  .login-header h1 {
+    font-size: 2rem;
+  }
+  .card {
+    border-radius: 20px;
+    max-width: 450px;
+    padding: 2.5rem 3rem;
+    border: 1px solid var(--border-color);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+    flex-grow: 0;
+    justify-content: flex-start;
+    background-color: var(--card-bg);
+    backdrop-filter: blur(5px); /* Efeito de vidro fosco para desktop */
+    -webkit-backdrop-filter: blur(5px); /* Efeito de vidro fosco para desktop */
+    /* Revertendo o degradê específico de mobile para desktop */
+    background: var(--card-bg);
+  }
+  .card h2 {
+    font-size: 1.7rem;
+  }
+  .card h2, .card p {
+      text-align: left;
+  }
+  .card input,
+  .card button.primary {
+    max-width: 100%;
+    margin-top: 0.75rem;
+  }
+  .card button.primary {
+    width: 100%;
+    padding: 14px 20px;
+    font-size: 1.05rem;
+    margin: 1.5rem 0 0 0;
+  }
+}
+
+/* --- Novo estilo para o Textarea de Importação (inspirado nos inputs) --- */
+.import-textarea {
+  width: 100%;
+  padding: 14px 16px;
+  margin: 0.75rem 0;
+  border-radius: 8px;
+  border: 1px solid var(--login-input-border);
+  font-size: 1.05rem;
+  box-sizing: border-box;
+  background-color: var(--login-input-bg);
+  color: var(--text-primary);
+  resize: vertical; /* Permite redimensionamento vertical */
+  min-height: 80px; /* Altura mínima para o textarea */
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.import-textarea:focus {
+  outline: none;
+  border-color: var(--primary-blue);
+  box-shadow: 0 0 0 4px rgba(0, 123, 255, 0.3);
+}
+.import-textarea::placeholder {
+  color: #cccccc;
+  opacity: 1;
+  font-size: 0.95rem; /* Ajuste para o placeholder do textarea */
+}
+
+/* Media query para telas MUITO pequenas (ex: iPhones SE) */
+@media (max-height: 600px) {
+  .login-screen-container {
+    padding: 15px 10px; /* Ainda menos padding em telas muito curtas */
+  }
+  .login-header {
+    margin-bottom: 15px;
+  }
+  .login-header .logo {
+    width: 70px;
+    height: 70px;
+  }
+  .login-header h1 {
+    font-size: 1.6rem;
+  }
+  .card {
+    padding: 1.5rem 1rem; /* Card ainda mais compacto */
+  }
+  .card h2 {
+    font-size: 1.2rem;
+  }
+  .card p {
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+  }
+  input[type="password"], input[type="text"] {
+    padding: 12px 14px; /* Inputs menores */
+    font-size: 0.95rem;
+  }
+  button.primary {
+    padding: 10px 14px; /* Botões menores */
+    font-size: 0.9rem;
+    margin-top: 1rem;
+  }
+  .auth-switch {
+    margin-top: 20px;
+    font-size: 0.85rem;
+  }
+  .link-button {
+    font-size: 1rem;
+  }
+}
+
+/* src/App.css */
+/* Adicionar este estilo para a nova div de aviso */
+.unsaved-wallet-warning {
+    background-color: var(--warning-bg); /* Reutiliza a cor de aviso */
+    border: 1px solid var(--error-color); /* Borda de atenção */
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+    text-align: center;
+    color: var(--text-primary);
+}
+.unsaved-wallet-warning p {
+    margin-top: 0;
+    margin-bottom: 1rem;
+    font-size: 0.95rem;
+    line-height: 1.4;
+    color: var(--text-secondary); /* Texto secundário para descrição */
+}
+.unsaved-wallet-warning button {
+    width: auto; /* Botão flexível */
+    padding: 8px 15px; /* Padding menor */
+    font-size: 0.9rem;
+    background-color: var(--primary-blue); /* Cor primária */
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+.unsaved-wallet-warning button:hover {
+    background-color: var(--primary-blue-hover);
+}
+
+/* ==================================================================
+ * ESTILOS PARA O MODAL DE DESBLOQUEIO (Adicionar/Manter no final do arquivo)
+ * ================================================================== */
+
+/* Estilo para a sobreposição do modal */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.7); /* Fundo escuro semi-transparente */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000; /* Garante que o modal fique por cima de tudo */
+  padding: 15px; /* Adiciona um pequeno padding para telas muito pequenas */
+  box-sizing: border-box; /* Garante que o padding não cause overflow */
+}
+
+/* Estilo para a sobreposição do modal */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.7); /* Fundo escuro semi-transparente */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000; /* Garante que o modal fique por cima de tudo */
+  padding: 15px; /* Adiciona um pequeno padding para telas muito pequenas */
+  box-sizing: border-box; /* Garante que o padding não cause overflow */
+}
+
+/* O .card já tem estilos gerais, mas podemos ajustar para o contexto do modal */
+/* Esses estilos aqui são apenas para garantir que o .card usado como modal seja responsivo e centralizado */
+.modal-overlay .card { /* Especificidade para garantir que o card dentro do overlay seja estilizado */
+  max-width: 420px; /* Largura máxima para o modal */
+  width: 100%; /* Ocupa a largura total em telas menores */
+  padding: 2rem 1.5rem; /* Padding interno para o conteúdo do modal */
+  text-align: center; /* Centraliza o texto dentro do modal */
+  border-radius: 20px; /* Borda arredondada */
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3); /* Sombra mais forte para destaque */
+  
+  /* --- NOVIDADE: Efeito de vidro fosco e transparência para o card do modal --- */
+  background: hsla(0, 0%, 100%, 0.1); /* Fundo branco levemente transparente para o tema claro */
+  backdrop-filter: blur(10px); /* Efeito de desfoque */
+  -webkit-backdrop-filter: blur(10px); /* Para compatibilidade com navegadores WebKit */
+  border: 1px solid hsla(0, 0%, 100%, 0.2); /* Borda sutilmente transparente */
+  /* Reutiliza a cor do texto principal do tema */
+  color: var(--text-primary);
+}
+
+/* Tema escuro para o card do modal */
+body.theme-dark .modal-overlay .card {
+  /* --- NOVIDADE: Efeito de vidro fosco e transparência para o card do modal (tema escuro) --- */
+  background: hsla(240, 5%, 8%, 0.6); /* Fundo escuro levemente transparente */
+  backdrop-filter: blur(15px); /* Desfoque mais intenso para contraste no tema escuro */
+  -webkit-backdrop-filter: blur(15px);
+  border: 1px solid hsla(240, 5%, 25%, 0.4); /* Borda mais suave e transparente */
+  color: var(--text-primary); /* Garante que o texto seja legível */
+}
+
+/* Estilo para os elementos de input dentro do modal (se usar a classe security-input) */
+.modal-overlay .card .security-input {
+    margin: 1rem auto; /* Centraliza e adiciona margem */
+    display: block; /* Garante que o input ocupe sua própria linha */
+}
+
+/* Estilo para o botão primário dentro do modal */
+.modal-overlay .card .button.primary {
+    width: 80%; /* Ajusta a largura do botão dentro do modal */
+    margin-left: auto; /* Centraliza o botão */
+    margin-right: auto;
+}
+
+/* Estilo para o link-button dentro do modal (se usar) */
+.modal-overlay .card .link-button {
+    margin-top: 1rem;
+    display: inline-block; /* Permite centralização se o pai for text-align: center */
+}
+
+/* Estilo para desfocar o conteúdo do dashboard quando o modal estiver ativo (opcional, mas recomendado) */
+main.wallet-content.blurred {
+    filter: blur(3px); /* Aplica desfoque */
+    pointer-events: none; /* Desabilita interações com o conteúdo desfocado */
+    transition: filter 0.3s ease; /* Adiciona uma transição suave ao desfoque */
+}
