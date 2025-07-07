@@ -1,7 +1,7 @@
 // src/MnemonicDisplayModal.jsx - AJUSTADO PARA O SCROLL NO MOBILE E NOVO DESIGN
 
 import React, { useState } from 'react';
-import './MnemonicDisplayModal.css'; // Importa o CSS da modal
+// Não há mais necessidade de importar MnemonicDisplayModal.css, pois seus estilos foram movidos para App.css
 
 function MnemonicDisplayModal({ mnemonic, onConfirm }) {
   const [hasConfirmed, setHasConfirmed] = useState(false);
@@ -56,7 +56,7 @@ function MnemonicDisplayModal({ mnemonic, onConfirm }) {
           </div>
 
           <button className="confirm-button" onClick={onConfirm} disabled={!hasConfirmed}>
-            Acessar Minha Carteira {/* REMOVIDO "Entendi," */}
+            Acessar Minha Carteira
           </button>
         </div>
       </div>

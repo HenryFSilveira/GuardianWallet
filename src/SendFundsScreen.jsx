@@ -1,7 +1,31 @@
-// src/SendFundsScreen.jsx - NOVO ARQUIVO
+// src/SendFundsScreen.jsx
 
 import React, { useState } from 'react';
 import { ethers } from 'ethers';
+
+// Função para formatar o número com separador de milhar (ponto) e decimal (ponto) para o input
+const formatNumberInput = (value) => {
+  if (!value) return '';
+  
+  // Remove tudo que não for dígito ou ponto decimal
+  const cleanedValue = value.replace(/[^\d.]/g, '');
+  
+  // Divide a parte inteira da parte decimal
+  const parts = cleanedValue.split('.');
+  let integerPart = parts[0];
+  const decimalPart = parts[1];
+
+  // Formata a parte inteira com separador de milhar (ponto)
+  integerPart = integerPart.split('').reverse().join('')
+                 .replace(/(\d{3})(?=\d)/g, '$1.')
+                 .split('').reverse().join('');
+
+  // Retorna o número formatado
+  if (decimalPart !== undefined) {
+    return integerPart + '.' + decimalPart;
+  }
+  return integerPart;
+};
 
 function SendFundsScreen({ wallet, provider, onNavigate, currentBalance }) {
   const [toAddress, setToAddress] = useState('');
@@ -10,24 +34,47 @@ function SendFundsScreen({ wallet, provider, onNavigate, currentBalance }) {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
+  const handleAmountChange = (e) => {
+    const rawValue = e.target.value;
+    
+    // Para a lógica interna e ethers.js, precisamos de um ponto como decimal e sem separador de milhar.
+    // Primeiro, remove todos os pontos que são separadores de milhar.
+    // Segundo, se a intenção for usar vírgula como decimal (no input), substitua por ponto para ethers.js.
+    // Por simplicidade, assumiremos que o input ainda usa ponto como decimal para corresponder a ethers.js diretamente.
+    // A formatação de saída (do saldo) é que usará a vírgula.
+    const numericalValueForEthers = rawValue.replace(/\./g, ''); // Garante que não haja separadores de milhar.
+
+    // Apenas para exibição, podemos reformatar se necessário.
+    // Para um input de texto, é melhor não forçar a vírgula, pois ethers.js usa ponto.
+    const formattedValueForDisplay = formatNumberInput(numericalValueForEthers);
+    
+    setAmount(formattedValueForDisplay);
+  };
+
   const handleSend = async () => {
     setError('');
     setSuccess('');
 
-    // Validação dos campos
+    // Prepara o valor do input para ser usado por ethers.parseEther
+    // Remove os pontos de milhar e garante que o decimal seja um ponto, se houver
+    const amountToParse = amount.replace(/\./g, ''); 
+
     if (!ethers.isAddress(toAddress)) {
       setError('O endereço do destinatário é inválido.');
       return;
     }
-    if (isNaN(parseFloat(amount)) || parseFloat(amount) <= 0) {
+    if (isNaN(parseFloat(amountToParse)) || parseFloat(amountToParse) <= 0) {
       setError('O valor deve ser um número positivo.');
       return;
     }
 
     setLoading(true);
     try {
-      const amountWei = ethers.parseEther(amount);
-      const balanceWei = ethers.parseEther(currentBalance);
+      const amountWei = ethers.parseEther(amountToParse); // Usa o valor limpo para o ethers.js
+      
+      // Limpa o currentBalance também para comparação precisa, se ele tiver formatação de vírgula ou ponto
+      const cleanedCurrentBalance = String(currentBalance).replace(/\./g, '').replace(',', '.');
+      const balanceWei = ethers.parseEther(cleanedCurrentBalance);
 
       if (amountWei > balanceWei) {
         setError('Saldo insuficiente.');
@@ -87,11 +134,18 @@ function SendFundsScreen({ wallet, provider, onNavigate, currentBalance }) {
             type="text"
             placeholder="0.0"
             value={amount}
-            onChange={(e) => setAmount(e.target.value)}
+            onChange={handleAmountChange}
             disabled={loading}
           />
           <p className="balance-info">
-            Saldo: {parseFloat(currentBalance).toFixed(5)} ETH
+            Saldo: {
+              // Formatação para exibir com vírgula decimal e 5 casas fixas
+              parseFloat(currentBalance).toLocaleString('pt-BR', {
+                minimumFractionDigits: 5,
+                maximumFractionDigits: 5,
+                useGrouping: false // **Importante**: Desativa o separador de milhar para valores menores que 1
+              })
+            } ETH
           </p>
         </div>
 
@@ -106,7 +160,7 @@ function SendFundsScreen({ wallet, provider, onNavigate, currentBalance }) {
       </div>
 
        <p className="security-note">
-          Certifique-se que o endereço está correto e que você está na rede desejada. Transações na blockchain são irreversíveis.
+          Certifique-se que o endereço está correto. Transações na blockchain são irreversíveis.
        </p>
     </main>
   );

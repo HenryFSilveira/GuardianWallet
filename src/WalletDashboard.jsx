@@ -1,4 +1,4 @@
-// src/WalletDashboard.jsx - CORRIGIDO com modal de desbloqueio
+// src/WalletDashboard.jsx - CORRIGIDO com modal de desbloqueio e scroll-to-top e CONTROLE DO MENU HAMBÚRGUER
 
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { ethers } from 'ethers';
@@ -9,9 +9,9 @@ import AddFundsScreen from './AddFundsScreen';
 import SendFundsScreen from './SendFundsScreen';
 
 // Defina sua ALCHEMY_URL aqui
-const ALCHEMY_URL = "https://eth-sepolia.g.alchemy.com/v2/dC3pmW1-LvddpiUj1zchD"; 
+const ALCHEMY_URL = "https://eth-sepolia.g.alchemy.com/v2/dC3pmW1-LvddpiUj1zchD";
 
-// --- Componentes de Ícones SVG (Sem Alterações) ---
+// --- Componentes de Ícones SVG ---
 const HomeIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
@@ -19,19 +19,20 @@ const HomeIcon = () => (
   </svg>
 );
 
-const AddFundsIcon = () => (
-    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-        <polyline points="7 10 12 15 17 10"></polyline>
-        <line x1="12" y1="15" x2="12" y2="3"></line>
-    </svg>
+// NOVO: Ícone de Cifrão ($) para Adicionar Fundos
+const DollarSignIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <line x1="12" y1="1" x2="12" y2="23"></line>
+    <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+  </svg>
 );
 
-const SendFundsIcon = () => (
-    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <line x1="12" y1="19" x2="12" y2="5"></line>
-        <polyline points="5 12 12 5 19 12"></polyline>
-    </svg>
+// NOVO: Ícone de Envio (seta para cima e direita - como "caixa de saída") para Enviar Fundos
+const SendNewIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <line x1="5" y1="12" x2="19" y2="12"></line>
+    <polyline points="12 5 19 12 12 19"></polyline>
+  </svg>
 );
 
 const ShieldIcon = () => (
@@ -43,6 +44,20 @@ const ShieldIcon = () => (
 const MoonIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+  </svg>
+);
+
+const SunIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="12" cy="12" r="5"></circle>
+    <line x1="12" y1="1" x2="12" y2="3"></line>
+    <line x1="12" y1="21" x2="12" y2="23"></line>
+    <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+    <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+    <line x1="1" y1="12" x2="3" y2="12"></line>
+    <line x1="21" y1="12" x2="23" y2="12"></line>
+    <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+    <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
   </svg>
 );
 
@@ -66,11 +81,17 @@ const EthIcon = ({ className }) => (
 );
 
 // --- Componente do Menu Hambúrguer (Código Completo) ---
-const HeaderMenu = ({ onLock, onToggleTheme, onNavigate }) => {
+// Adicionado onMenuChange prop para notificar o pai sobre o estado do menu
+const HeaderMenu = ({ onLock, onToggleTheme, onNavigate, onMenuChange, currentTheme }) => {
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef(null);
 
   useEffect(() => {
+    // Notifica o componente pai (WalletDashboard) sobre a mudança de estado
+    if (onMenuChange) {
+      onMenuChange(isOpen);
+    }
+
     const handleClickOutside = (event) => {
       if (menuRef.current && !menuRef.current.contains(event.target)) {
         setIsOpen(false);
@@ -80,7 +101,7 @@ const HeaderMenu = ({ onLock, onToggleTheme, onNavigate }) => {
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, []);
+  }, [isOpen, onMenuChange]);
 
   const handleNavigation = (view) => {
     onNavigate(view);
@@ -94,7 +115,7 @@ const HeaderMenu = ({ onLock, onToggleTheme, onNavigate }) => {
 
   const handleLock = () => {
     onLock();
-    setIsOpen(false); 
+    setIsOpen(false);
   }
 
   return (
@@ -114,11 +135,11 @@ const HeaderMenu = ({ onLock, onToggleTheme, onNavigate }) => {
             <span>Início</span>
           </button>
           <button className="dropdown-item" onClick={() => handleNavigation('addFunds')}>
-            <AddFundsIcon />
+            <DollarSignIcon /> {/* Substituído AddFundsIcon por DollarSignIcon */}
             <span>Adicionar Fundos</span>
           </button>
           <button className="dropdown-item" onClick={() => handleNavigation('sendFunds')}>
-            <SendFundsIcon />
+            <SendNewIcon /> {/* Substituído SendFundsIcon por SendNewIcon */}
             <span>Enviar Fundos</span>
           </button>
           <button className="dropdown-item" onClick={() => handleNavigation('security')}>
@@ -126,8 +147,8 @@ const HeaderMenu = ({ onLock, onToggleTheme, onNavigate }) => {
             <span>Segurança</span>
           </button>
           <button className="dropdown-item" onClick={handleToggleTheme}>
-            <MoonIcon />
-            <span>Modo Escuro</span>
+            {currentTheme === 'dark' ? <SunIcon /> : <MoonIcon />}
+            <span>{currentTheme === 'dark' ? 'Modo Claro' : 'Modo Escuro'}</span>
           </button>
           <button className="dropdown-item" onClick={handleLock}>
             <LogOutIcon />
@@ -139,21 +160,46 @@ const HeaderMenu = ({ onLock, onToggleTheme, onNavigate }) => {
   );
 };
 
-
 // --- Componente Principal WalletDashboard ---
 function WalletDashboard({ wallet, onLock, onToggleTheme, activeView, setActiveView, currentTheme, onWalletUnlocked }) {
     const [balance, setBalance] = useState('0');
     const [userName, setUserName] = useState('');
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
-    
+    // ADICIONADO: Novo estado para o preço do ETH em BRL
+    const [ethPriceBrl, setEthPriceBrl] = useState(null);
+    // ADICIONADO: Novo estado para o saldo convertido em BRL
+    const [convertedBalanceBrl, setConvertedBalanceBrl] = useState('0,00');
+
     // NOVO ESTADO: Controla a visibilidade do modal de desbloqueio
     const [showUnlockModal, setShowUnlockModal] = useState(false);
     const [unlockPassword, setUnlockPassword] = useState('');
     const [unlockError, setUnlockError] = useState('');
     const [isUnlocking, setIsUnlocking] = useState(false);
 
+    // NOVO ESTADO: Controla se o menu hambúrguer está aberto
+    const [isMenuOpen, setIsMenuOpen] = useState(false);
+
     const provider = useMemo(() => new ethers.JsonRpcProvider(ALCHEMY_URL), []);
+
+    // Efeito para rolar para o topo ao mudar a view
+    useEffect(() => {
+        window.scrollTo(0, 0);
+    }, [activeView]);
+
+    // Efeito para adicionar/remover a classe 'menu-open' no body
+    useEffect(() => {
+      if (isMenuOpen) {
+        document.body.classList.add('menu-open');
+      } else {
+        document.body.classList.remove('menu-open');
+      }
+      // Limpeza: garante que a classe seja removida ao desmontar o componente
+      return () => {
+        document.body.classList.remove('menu-open');
+      };
+    }, [isMenuOpen]);
+
 
     useEffect(() => {
         const storedName = localStorage.getItem('walletName');
@@ -161,30 +207,24 @@ function WalletDashboard({ wallet, onLock, onToggleTheme, activeView, setActiveV
             setUserName(storedName);
         }
 
-        const fetchBalanceAndCheckUnlock = async () => {
+        const fetchBalanceAndPrice = async () => {
             setLoading(true);
             setError('');
-            let addressToFetch = wallet?.address; // Tenta pegar o endereço da carteira em memória
+            let addressToFetch = wallet?.address;
 
-            // Se a carteira NÃO está desbloqueada na memória, mas existe no localStorage,
-            // então precisamos do modal de desbloqueio.
             if (!wallet) {
                 const storedEncryptedWallet = localStorage.getItem('encryptedWallet');
                 const storedUserAddress = localStorage.getItem('userAddress');
 
                 if (storedEncryptedWallet && storedUserAddress) {
-                    addressToFetch = storedUserAddress; // Pega o endereço para exibir saldo
-                    setShowUnlockModal(true); // Exibe o modal para desbloquear a carteira
+                    addressToFetch = storedUserAddress;
+                    setShowUnlockModal(true);
                 } else {
-                    // Caso não tenha carteira alguma salva, algo está errado no fluxo,
-                    // ou o usuário precisa ir para a tela de login para criar uma.
-                    // Isso não deve acontecer com a lógica do App.jsx, mas é um fallback.
-                    onLock(); // Força o logout para ir para o LoginScreen
+                    onLock();
                     setLoading(false);
                     return;
                 }
             } else {
-                // Se a carteira já está desbloqueada, não mostra o modal.
                 setShowUnlockModal(false);
             }
 
@@ -198,17 +238,44 @@ function WalletDashboard({ wallet, onLock, onToggleTheme, activeView, setActiveV
                 const balanceWei = await provider.getBalance(addressToFetch);
                 const balanceEth = ethers.formatEther(balanceWei);
                 setBalance(balanceEth);
+
+                // ADICIONADO: Buscar Preço do ETH em BRL da CoinGecko API
+                const response = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=brl');
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const data = await response.json();
+                const price = data.ethereum.brl;
+                setEthPriceBrl(price);
+
+                // ADICIONADO: Calcular Saldo Convertido para BRL
+                setConvertedBalanceBrl((parseFloat(balanceEth) * price).toFixed(2));
+
             } catch (err) {
-                setError('Falha ao buscar saldo.');
-                console.error("Erro ao buscar saldo:", err);
+                setError('Falha ao buscar saldo ou preço do ETH.');
+          
+                setEthPriceBrl(null);
+                setConvertedBalanceBrl('0,00');
             } finally {
                 setLoading(false);
             }
         };
-        fetchBalanceAndCheckUnlock();
-    }, [wallet, provider, onLock]); // Dependências: wallet, provider, onLock
+        fetchBalanceAndPrice();
+        // ADICIONADO: Atualiza o preço a cada 1 minuto (60 segundos)
+        const intervalId = setInterval(fetchBalanceAndPrice, 60000);
+        return () => clearInterval(intervalId); // Limpa o intervalo ao desmontar o componente
+    }, [wallet, provider, onLock]);
 
-    // Função para lidar com o desbloqueio da carteira via modal
+    // ADICIONADO: Efeito para recalcular saldo convertido sempre que o balance ou ethPriceBrl mudar
+    useEffect(() => {
+        if (balance && ethPriceBrl !== null) {
+            setConvertedBalanceBrl((parseFloat(balance) * ethPriceBrl).toFixed(2));
+        } else {
+            setConvertedBalanceBrl('0,00');
+        }
+    }, [balance, ethPriceBrl]);
+
+
     const handleUnlockWalletFromModal = async () => {
         setUnlockError('');
         if (!unlockPassword) {
@@ -219,11 +286,10 @@ function WalletDashboard({ wallet, onLock, onToggleTheme, activeView, setActiveV
         try {
             const encryptedJson = localStorage.getItem('encryptedWallet');
             const decryptedWallet = await ethers.Wallet.fromEncryptedJson(encryptedJson, unlockPassword);
-            
-            // Sucesso: a carteira foi desbloqueada.
-            onWalletUnlocked(decryptedWallet); // Atualiza o estado da carteira no App.jsx
-            setShowUnlockModal(false); // Fecha o modal
-            setUnlockPassword(''); // Limpa a senha
+
+            onWalletUnlocked(decryptedWallet);
+            setShowUnlockModal(false);
+            setUnlockPassword('');
         } catch (err) {
             setUnlockError('Senha incorreta. Tente novamente.');
             console.error("Erro ao desbloquear carteira via modal:", err);
@@ -232,7 +298,6 @@ function WalletDashboard({ wallet, onLock, onToggleTheme, activeView, setActiveV
         }
     };
 
-    // Renderiza o modal de desbloqueio
     const renderUnlockModal = () => {
         if (!showUnlockModal) return null;
 
@@ -249,8 +314,8 @@ function WalletDashboard({ wallet, onLock, onToggleTheme, activeView, setActiveV
                         value={unlockPassword}
                         onChange={(e) => setUnlockPassword(e.target.value)}
                         onKeyPress={(e) => e.key === 'Enter' && handleUnlockWalletFromModal()}
-                        className="security-input" // Reutiliza estilo de input
-                        style={{width: 'calc(100% - 32px)', margin: '1rem 0'}} // Ajuste de largura para mobile
+                        className="security-input"
+                        style={{width: 'calc(100% - 32px)', margin: '1rem 0'}}
                     />
                     {unlockError && <p className="error-message">{unlockError}</p>}
                     <button
@@ -261,9 +326,8 @@ function WalletDashboard({ wallet, onLock, onToggleTheme, activeView, setActiveV
                     >
                         {isUnlocking ? 'Desbloqueando...' : 'Desbloquear Carteira'}
                     </button>
-                    {/* Opcional: Botão para Sair completamente, caso o usuário queira */}
                     <button
-                        onClick={onLock} // Leva o usuário para a tela de LoginScreen para recriar/acessar outra
+                        onClick={onLock}
                         className="link-button"
                         style={{marginTop: '1rem', fontSize: '0.9rem'}}
                     >
@@ -274,7 +338,6 @@ function WalletDashboard({ wallet, onLock, onToggleTheme, activeView, setActiveV
         );
     };
 
-    // Retorno do componente principal
     return (
         <div className="wallet-screen">
             <header className="wallet-header">
@@ -285,44 +348,68 @@ function WalletDashboard({ wallet, onLock, onToggleTheme, activeView, setActiveV
                         <span> Wallet</span>
                     </h1>
                 </div>
-                <HeaderMenu 
-                  onLock={onLock} 
-                  onToggleTheme={onToggleTheme} 
+                <HeaderMenu
+                  onLock={onLock}
+                  onToggleTheme={onToggleTheme}
                   onNavigate={setActiveView}
+                  onMenuChange={setIsMenuOpen}
+                  currentTheme={currentTheme}
                 />
             </header>
-            
-            {renderUnlockModal()} {/* Renderiza o modal aqui */}
+
+            {renderUnlockModal()}
 
             <main className="wallet-content" style={showUnlockModal ? {filter: 'blur(3px)', pointerEvents: 'none'} : {}}>
-              {/* Mensagem de boas-vindas */}
-              {userName && (
-                <h2 className="welcome-greeting">
-                  Olá, <strong>{userName}</strong>!
-                </h2>
+              {activeView === 'main' && (
+                <>
+                  {userName && (
+                    <h2 className="welcome-greeting">
+                      Olá, <strong>{userName}</strong>!
+                    </h2>
+                  )}
+
+                  <div className="balance-section">
+                    <p className="balance-label">SALDO TOTAL</p>
+                    <div className="balance-value">
+                      {loading ? 'A carregar...' : parseFloat(balance).toFixed(5)}
+                      <div className="eth-unit">
+                        <EthIcon className="eth-icon"/>
+                        <span>ETH</span>
+                      </div>
+                    </div>
+                    {/* ADICIONADO: Conversor de Moedas para BRL */}
+                    <div className="converted-balance">
+                        {loading ? (
+                            <p>Carregando preço...</p>
+                        ) : ethPriceBrl !== null ? (
+                            <p>
+                                ≈ {
+                                    // Formatação para BRL: R$ e vírgula como separador decimal, ponto para milhar
+                                    parseFloat(convertedBalanceBrl).toLocaleString('pt-BR', {
+                                        style: 'currency',
+                                        currency: 'BRL',
+                                        minimumFractionDigits: 2,
+                                        maximumFractionDigits: 2
+                                    })
+                                }
+                            </p>
+                        ) : (
+                            <p className="error-message">Não foi possível carregar o preço do ETH em BRL.</p>
+                        )}
+                    </div>
+                  </div>
+                  <div className="chart-section">
+                    <p className="address-label">ETHEREUM (USD) - ÚLTIMOS 7 DIAS</p>
+                    <EthPriceChart />
+                  </div>
+                  {error && <p className="error-message" style={{textAlign: 'center'}}>{error}</p>}
+                </>
               )}
 
-              <div className="balance-section">
-                <p className="balance-label">SALDO TOTAL</p>
-                <div className="balance-value">
-                  {loading ? 'A carregar...' : parseFloat(balance).toFixed(5)}
-                  <div className="eth-unit">
-                    <EthIcon className="eth-icon"/>
-                    <span>ETH</span>
-                  </div>
-                </div>
-              </div>
-              <div className="chart-section">
-                <p className="address-label">ETHEREUM (USD) - ÚLTIMOS 7 DIAS</p>
-                <EthPriceChart />
-              </div>
-              {error && <p className="error-message" style={{textAlign: 'center'}}>{error}</p>}
+              {activeView === 'security' && wallet && <SecurityScreen wallet={wallet} onNavigate={setActiveView} />}
+              {activeView === 'addFunds' && <AddFundsScreen walletAddress={wallet?.address || localStorage.getItem('userAddress')} onNavigate={setActiveView} currentTheme={currentTheme} />}
+              {activeView === 'sendFunds' && wallet && <SendFundsScreen wallet={wallet} provider={provider} onNavigate={setActiveView} currentBalance={balance} />}
             </main>
-
-            {/* Telas que exigem a carteira desbloqueada só são acessíveis se wallet não for null */}
-            {activeView === 'security' && wallet && <SecurityScreen wallet={wallet} onNavigate={setActiveView} />}
-            {activeView === 'addFunds' && <AddFundsScreen walletAddress={wallet?.address || localStorage.getItem('userAddress')} onNavigate={setActiveView} currentTheme={currentTheme} />}
-            {activeView === 'sendFunds' && wallet && <SendFundsScreen wallet={wallet} provider={provider} onNavigate={setActiveView} currentBalance={balance} />}
         </div>
     );
 }

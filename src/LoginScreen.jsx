@@ -1,4 +1,4 @@
-// src/LoginScreen.jsx - ATUALIZADO para definir 'isLoggedIn' no localStorage
+// src/LoginScreen.jsx - CORRIGIDO para limpar o erro ao mudar o modo de autenticação
 
 import React, { useState, useEffect } from 'react';
 import { ethers } from 'ethers';
@@ -8,7 +8,7 @@ import logo from './assets/logo.png';
 function LoginScreen({ onWalletUnlocked }) {
   const [password, setPassword] = useState('');
   const [walletName, setWalletName] = useState('');
-  const [error, setError] = useState('');
+  const [error, setError] = useState(''); // Estado da mensagem de erro
   const [loading, setLoading] = useState(false);
   
   const [authMode, setAuthMode] = useState('unlock'); // Pode ser 'unlock' ou 'create'
@@ -34,6 +34,12 @@ function LoginScreen({ onWalletUnlocked }) {
     }
   }, []); 
 
+  // NOVO useEffect: Limpa a mensagem de erro e a senha ao mudar o modo de autenticação
+  useEffect(() => {
+    setError(''); // Limpa a mensagem de erro
+    setPassword(''); // Limpa o campo de senha
+    // Não limpa o walletName aqui, pois ele pode ser persistido para o usuário
+  }, [authMode]); // Depende do authMode
 
   const handleCreateWallet = async () => {
     if (!walletName.trim()) {
@@ -44,7 +50,7 @@ function LoginScreen({ onWalletUnlocked }) {
       setError('A senha deve ter pelo menos 8 caracteres.');
       return;
     }
-    setError('');
+    setError(''); // Limpa qualquer erro anterior antes de criar
     setLoading(true);
     
     const generatedWallet = ethers.Wallet.createRandom();
@@ -60,7 +66,7 @@ function LoginScreen({ onWalletUnlocked }) {
     localStorage.setItem('walletName', walletName);
     localStorage.setItem('encryptedWallet', encryptedJson);
     localStorage.setItem('userAddress', newWallet.address);
-    localStorage.setItem('isLoggedIn', 'true'); // NOVIDADE: Marca como logado
+    localStorage.setItem('isLoggedIn', 'true');
     
     setShowMnemonicModal(false);
     onWalletUnlocked(newWallet);
@@ -73,12 +79,12 @@ function LoginScreen({ onWalletUnlocked }) {
       return;
     }
     setLoading(true);
-    setError('');
+    setError(''); // Limpa qualquer erro anterior antes de tentar desbloquear
 
     const encryptedJson = localStorage.getItem('encryptedWallet');
     try {
       const wallet = await ethers.Wallet.fromEncryptedJson(encryptedJson, password);
-      localStorage.setItem('isLoggedIn', 'true'); // NOVIDADE: Marca como logado
+      localStorage.setItem('isLoggedIn', 'true');
       onWalletUnlocked(wallet);
     } catch (error) {
       setError('Senha incorreta.');
@@ -102,6 +108,7 @@ function LoginScreen({ onWalletUnlocked }) {
           <>
             <h2>Acessar carteira</h2>
             <p>Bem-vindo de volta!</p>
+            {error && <p className="error-message">{error}</p>} 
             <input
               type="password"
               placeholder="Digite sua senha"
@@ -109,7 +116,6 @@ function LoginScreen({ onWalletUnlocked }) {
               onChange={(e) => setPassword(e.target.value)}
               onKeyPress={(e) => e.key === 'Enter' && handleUnlockWallet()}
             />
-            {error && <p className="error-message">{error}</p>}
             <button className="primary" onClick={handleUnlockWallet} disabled={loading}>
               {loading ? 'Desbloqueando...' : 'Desbloquear'}
             </button>
@@ -121,6 +127,7 @@ function LoginScreen({ onWalletUnlocked }) {
           <>
             <h2>Crie sua carteira</h2>
             <p>Seja bem-vindo(a)! </p>
+            {error && <p className="error-message">{error}</p>} {/* Mensagem de erro também aqui */}
             
             <input
               type="text"
@@ -135,7 +142,6 @@ function LoginScreen({ onWalletUnlocked }) {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
             />
-            {error && <p className="error-message">{error}</p>}
             <button className="primary" onClick={handleCreateWallet} disabled={loading}>
               {loading ? 'Criando...' : 'Criar Carteira'}
             </button>

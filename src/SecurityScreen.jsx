@@ -1,7 +1,4 @@
-/* ==================================================================
- * ARQUIVO: src/SecurityScreen.jsx
- * (Versão final com diálogo de confirmação e bloqueio persistente)
- * ================================================================== */
+// src/SecurityScreen.jsx - CORRIGIDO para usar a nova classe de botão danger-button
 
 import React, { useState, useEffect } from 'react';
 import { ethers } from 'ethers';
@@ -130,7 +127,7 @@ function SecurityScreen({ wallet, onNavigate }) {
   return (
     <main className="wallet-content security-screen">
       <button className="back-button" onClick={() => onNavigate('main')}>
-        &larr; Voltar para Início 
+        &larr; Voltar para Início
       </button>
       <h2>Segurança da Carteira</h2>
 
@@ -186,20 +183,18 @@ function SecurityScreen({ wallet, onNavigate }) {
               Tem certeza de que deseja continuar?
             </p>
             <div style={{display: 'flex', gap: '1rem', marginTop: '1.5rem'}}>
-               <button 
-                  onClick={() => setShowConfirmation(false)} 
-                  className="button primary" 
-                  // ATUALIZADO: Estilo do botão de cancelar
+               <button
+                  onClick={() => setShowConfirmation(false)}
+                  className="button primary"
+                  // ATUALIZADO: Estilo do botão de cancelar (manter azul ou outro, sua escolha)
                   style={{backgroundColor: '#000000', borderColor: '#000000', color: '#FFFFFF'}}
                 >
                   Cancelar
                 </button>
-                <button 
-                  onClick={handleViewMnemonic} 
-                  className="button primary"
-                  style={{backgroundColor: 'var(--error-color)', borderColor: 'var(--error-color)'}}
+                <button
+                  onClick={handleViewMnemonic}
+                  className="button primary danger-button" /* APLICADO A NOVA CLASSE AQUI */
                 >
-                  {/* ATUALIZADO: Texto do botão de confirmação */}
                   Sim, estou ciente
                 </button>
             </div>
@@ -234,8 +229,8 @@ function SecurityScreen({ wallet, onNavigate }) {
           onChange={(e) => setConfirmNewPassword(e.target.value)}
           className="security-input"
         />
-        <button 
-          onClick={handleChangePassword} 
+        <button
+          onClick={handleChangePassword}
           disabled={isChangePasswordLoading}
           className="button primary security-button"
         >

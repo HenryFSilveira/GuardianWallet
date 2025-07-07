@@ -12,7 +12,6 @@ import {
   Filler,
   Legend,
 } from 'chart.js';
-import './EthPriceChart.css';
 
 // Registra os componentes necessários do Chart.js para a renderização do gráfico
 ChartJS.register(

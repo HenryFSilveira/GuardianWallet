@@ -1,9 +1,9 @@
-// src/App.jsx - CORRIGIDO para o fluxo de logout
+// src/App.jsx - CORRIGIDO para o fluxo de logout e layout do header
 
 import React, { useState, useEffect } from 'react';
 import LoginScreen from './LoginScreen';
 import WalletDashboard from './WalletDashboard';
-import './App.css';
+import './App.css'; // Aponta apenas para App.css
 
 function App() {
   const [unlockedWallet, setUnlockedWallet] = useState(null);
@@ -15,6 +15,10 @@ function App() {
   // Estado para garantir que a verificação inicial do localStorage foi concluída
   const [isInitialCheckDone, setIsInitialCheckDone] = useState(false);
 
+  // Efeito para garantir que a página inicie sempre no topo
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []); // Array de dependências vazio para rodar apenas uma vez na montagem
 
   // Efeito para carregar o tema e verificar o estado de login/carteira ao montar
   useEffect(() => {
@@ -64,19 +68,24 @@ function App() {
 
   // Exibe um estado de carregamento enquanto a verificação inicial não é concluída
   if (!isInitialCheckDone) {
-    return <div className="App"><header className="App-header">Carregando...</header></div>;
+    // Melhorar este loading, talvez um spinner ou tela mais elaborada
+    return <div className="App app-loading">Carregando...</div>;
   }
 
   // Lógica de renderização principal:
   // Se o usuário está logado na sessão (via isLoggedIn no localStorage) E/OU a carteira está desbloqueada na memória,
   // E também existe uma carteira criptografada no localStorage, vai para o Dashboard.
   // Caso contrário, vai para o LoginScreen.
-  const renderAppContent = () => {
-    const hasEncryptedWalletOnDisk = localStorage.getItem('encryptedWallet') !== null;
+  const hasEncryptedWalletOnDisk = localStorage.getItem('encryptedWallet') !== null;
 
-    if (unlockedWallet) {
-      // Cenário 1: Carteira desbloqueada na sessão atual
-      return (
+  // A classe do App agora reflete se estamos em um contexto de dashboard ou login
+  const appViewClass = (unlockedWallet || (isUserLoggedInSession && hasEncryptedWalletOnDisk)) ? 'dashboard-view' : 'login-view';
+  const appClassName = `App ${appViewClass} theme-${theme}`;
+
+  return (
+    <div className={appClassName}>
+      {/* Removido o <header className="App-header"> aqui */}
+      {unlockedWallet || (isUserLoggedInSession && hasEncryptedWalletOnDisk) ? (
         <WalletDashboard
           wallet={unlockedWallet} // Carteira completa
           onLock={handleLock}
@@ -86,36 +95,9 @@ function App() {
           currentTheme={theme}
           onWalletUnlocked={handleLoginSuccess}
         />
-      );
-    } else if (isUserLoggedInSession && hasEncryptedWalletOnDisk) {
-      // Cenário 2: Usuário estava logado na sessão anterior OU fez refresh, e tem carteira no disco.
-      // Vai para o Dashboard com o modal de desbloqueio.
-      return (
-        <WalletDashboard
-          wallet={null} // Passa null para o Dashboard, indicando que ele deve mostrar o modal
-          onLock={handleLock}
-          onToggleTheme={toggleTheme}
-          activeView={activeDashboardView}
-          setActiveView={setActiveDashboardView}
-          currentTheme={theme}
-          onWalletUnlocked={handleLoginSuccess}
-        />
-      );
-    } else {
-      // Cenário 3: Não está logado na sessão, ou não tem carteira no disco (logout ou primeiro acesso)
-      return <LoginScreen onWalletUnlocked={handleLoginSuccess} />;
-    }
-  };
-
-  // A classe do App agora reflete se estamos em um contexto de dashboard ou login
-  const appViewClass = (unlockedWallet || (isUserLoggedInSession && localStorage.getItem('encryptedWallet') !== null)) ? 'dashboard-view' : 'login-view';
-  const appClassName = `App ${appViewClass} theme-${theme}`;
-
-  return (
-    <div className={appClassName}>
-      <header className="App-header">
-        {renderAppContent()}
-      </header>
+      ) : (
+        <LoginScreen onWalletUnlocked={handleLoginSuccess} />
+      )}
     </div>
   );
 }

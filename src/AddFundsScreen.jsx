@@ -54,11 +54,10 @@ function AddFundsScreen({ walletAddress, onNavigate, currentTheme }) {
       <h2>Adicionar Fundos</h2>
       <p className="funds-note">
         Envie Ethereum (ETH) para o endereço abaixo.
-        Certifique-se de estar enviando pela rede correta.
       </p>
 
       <div className="address-display-card">
-        <h3 className="address-display-label">Seu Endereço Ethereum</h3>
+        <h3 className="address-display-label">Endereço da sua carteira</h3>
         <div className="address-text-funds">
           <span>{walletAddress}</span>
         </div>

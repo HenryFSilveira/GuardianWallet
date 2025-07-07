@@ -1,0 +1,21 @@
+# .gitlab-ci.yml
+
+pages:
+  image: node:20 # Ou a versão mais recente do Node.js LTS, como node:lts
+  stage: deploy
+  cache:
+    key:
+      files:
+        - package-lock.json # Garante que o cache seja inválido se as dependências mudarem
+    paths:
+      - node_modules/ # Cacheia as dependências para builds mais rápidas
+  script:
+    - npm install # Instala todas as dependências
+    - npm run build # Executa o script de build do Vite, que gera a pasta 'dist'
+    - rm -rf public # Remove qualquer pasta 'public' existente para evitar conflitos
+    - mv dist public # Move o conteúdo da pasta 'dist' para 'public', que é onde o GitLab Pages procura
+  artifacts:
+    paths:
+      - public # O GitLab Pages publicará o conteúdo desta pasta
+  only:
+    - main # Este job será executado apenas em pushes para a branch 'main' (ou 'master', se for o caso)
